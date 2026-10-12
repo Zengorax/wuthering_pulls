@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }} · Wuthering Pulls{% endblock %}
+
+{% block body %}
+    <section class="form-page">
+        <p class="eyebrow"><a class="text-link" href="{{ path('dashboard') }}">← Retour au tableau de bord</a></p>
+        <div class="panel">
+            <h1>{{ title }}</h1>
+            <p class="subtitle">{{ description }}</p>
+            {{ form_start(form, {attr: {class: 'form-stack'}}) }}
+                {{ form_errors(form) }}
+                {{ form_widget(form) }}
+                <div class="form-actions">
+                    <button class="button button-primary" type="submit">Enregistrer</button>
+                    <a class="button" href="{{ path('dashboard') }}">Annuler</a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </section>
+{% endblock %}

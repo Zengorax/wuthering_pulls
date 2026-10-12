@@ -1,0 +1,232 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historique des invocations · Wuthering Pulls{% endblock %}
+
+{% block body %}
+    {% set grand_total = 0 %}
+    {% for period in periods %}
+        {% set grand_total = grand_total + period.entity.totalPulls %}
+    {% endfor %}
+
+    <section class="page-heading">
+        <div>
+            <p class="eyebrow">Wuthering Waves · Suivi personnel</p>
+            <h1>Historique des invocations</h1>
+            <p class="subtitle">Toutes vos sessions, estimations et ressources réunies au même endroit.</p>
+        </div>
+        <nav class="toolbar" aria-label="Gestion de l’historique">
+            <a class="button" href="{{ path('major_version_new') }}">+ Période majeure</a>
+            {% if periods is not empty %}
+                <a class="button button-primary" href="{{ path('version_new') }}">+ Version</a>
+            {% endif %}
+        </nav>
+    </section>
+
+    <section class="stats-grid" aria-label="Totaux et moyennes de l’historique">
+        <article class="stat-card highlight">
+            <span class="stat-label">Total cumulé · toutes périodes</span>
+            <strong class="stat-value">{{ grand_total|number_format(0, ',', ' ') }} <small>pulls</small></strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Équivalent astrites</span>
+            <strong class="stat-value">{{ (grand_total * 160)|number_format(0, ',', ' ') }} <small>astrites</small></strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Périodes majeures suivies</span>
+            <strong class="stat-value">{{ periods|length }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Moyenne perso · réel uniquement</span>
+            <strong class="stat-value avg-character">{{ character_pulls_average is not null ? character_pulls_average|number_format(1, ',', ' ') : '—' }} <small>pulls</small></strong>
+            <span class="stat-hint">{{ character_pulls_count }} cible{{ character_pulls_count == 1 ? '' : 's' }} comptabilisée{{ character_pulls_count == 1 ? '' : 's' }}</span>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">Moyenne arme · réel uniquement</span>
+            <strong class="stat-value avg-weapon">{{ weapon_pulls_average is not null ? weapon_pulls_average|number_format(1, ',', ' ') : '—' }} <small>pulls</small></strong>
+            <span class="stat-hint">{{ weapon_pulls_count }} arme{{ weapon_pulls_count == 1 ? '' : 's' }} comptabilisée{{ weapon_pulls_count == 1 ? '' : 's' }}</span>
+        </article>
+    </section>
+
+    <div class="dashboard-grid">
+        <section class="period-list" aria-label="Historique par période majeure">
+            {% for period in periods %}
+                <article class="period-card">
+                    <header class="period-top">
+                        <div class="section-heading">
+                            <div class="period-title">
+                                <h2>{{ period.entity.name }}</h2>
+                                <span class="period-total">
+                                    {{ period.entity.totalPulls|number_format(0, ',', ' ') }} pulls
+                                    · {{ period.entity.totalAstrites|number_format(0, ',', ' ') }} astrites
+                                </span>
+                            </div>
+                            <a class="text-link" href="{{ path('resource_new', {major: period.entity.id}) }}">+ Source de ressources</a>
+                        </div>
+                    </header>
+                    <div class="period-body">
+                        {% for version_entry in period.versions %}
+                            {% set version = version_entry.entity %}
+                            <section class="version-card">
+                                <header class="version-heading">
+                                    <h3>
+                                        Version {{ version.name }}
+                                        <span class="version-total">{{ version.totalPulls|number_format(0, ',', ' ') }} pulls</span>
+                                    </h3>
+                                    <a class="text-link" href="{{ path('version_stock_edit', {id: version.id}) }}">Stock & estimations</a>
+                                </header>
+
+                                {% if version_entry.targets is not empty %}
+                                    <div class="table-wrap">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Personnage / cible</th>
+                                                    <th>Pulls perso</th>
+                                                    <th>Pulls sig.</th>
+                                                    <th>Total</th>
+                                                    <th>50/50 perso</th>
+                                                    <th>Statut / remarques</th>
+                                                    <th><span class="visually-hidden">Actions</span></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for target in version_entry.targets %}
+                                                    <tr>
+                                                        <td>{{ target.name }}</td>
+                                                        <td class="number-cell">{{ target.pullsCharacter }}</td>
+                                                        <td class="number-cell">{{ target.pullsWeapon }}</td>
+                                                        <td class="number-cell"><strong>{{ target.totalPulls }}</strong></td>
+                                                        <td>
+                                                            {% if target.fiftyFiftyResult == 'won' %}
+                                                                <span class="badge badge-won">Gagné</span>
+                                                            {% elseif target.fiftyFiftyResult == 'lost' %}
+                                                                <span class="badge badge-lost">Perdu</span>
+                                                            {% else %}
+                                                                <span class="muted">—</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="status-cell">
+                                                            {% if target.isEstimate %}
+                                                                <span class="badge badge-estimate">Estimation</span>
+                                                            {% else %}
+                                                                <span class="badge badge-real">Réel</span>
+                                                            {% endif %}
+                                                            {% if target.notes %}
+                                                                <div class="notes-text">{{ target.notes }}</div>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            <div class="row-actions">
+                                                                <a class="text-link" href="{{ path('target_edit', {id: target.id}) }}">Modifier</a>
+                                                                <form method="post" action="{{ path('target_delete', {id: target.id}) }}" onsubmit="return confirm('Supprimer cette ligne d’invocation ?');">
+                                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-target-' ~ target.id) }}">
+                                                                    <button type="submit">Supprimer</button>
+                                                                </form>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                                <tr class="table-total">
+                                                    <td colspan="3">Total {{ version.name }}</td>
+                                                    <td class="number-cell">{{ version.totalPulls }}</td>
+                                                    <td colspan="3"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="muted">Aucune session enregistrée pour cette version.</p>
+                                {% endif %}
+
+                                {% if version.startLuminite is not null or version.startAstrite is not null or version.startPulls is not null or version.estimatedEndLuminite is not null or version.estimatedEndAstrite is not null or version.estimatedEndPulls is not null or version.equivalence %}
+                                    <div class="stock-box">
+                                        <div class="stock-heading">
+                                            <span>Stock & projections</span>
+                                            {% if version.equivalence %}
+                                                <span class="equivalence">Équivalent : {{ version.equivalence }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="stock-columns">
+                                            <div>
+                                                <span class="stock-label">Début de version</span>
+                                                <div class="stock-values">
+                                                    {% if version.startLuminite is not null %}<span>{{ version.startLuminite|number_format(0, ',', ' ') }} luminite</span>{% endif %}
+                                                    {% if version.startAstrite is not null %}<span>{{ version.startAstrite|number_format(0, ',', ' ') }} astrites</span>{% endif %}
+                                                    {% if version.startPulls is not null %}<span>{{ version.startPulls }} pulls</span>{% endif %}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="stock-label">Fin estimée</span>
+                                                <div class="stock-values">
+                                                    {% if version.estimatedEndLuminite is not null %}<span>{{ version.estimatedEndLuminite|number_format(0, ',', ' ') }} luminite</span>{% endif %}
+                                                    {% if version.estimatedEndAstrite is not null %}<span>{{ version.estimatedEndAstrite|number_format(0, ',', ' ') }} astrites</span>{% endif %}
+                                                    {% if version.estimatedEndPulls is not null %}<span>{{ version.estimatedEndPulls }} pulls</span>{% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </section>
+                        {% else %}
+                            <div class="empty-state">Aucune version n’est encore rattachée à cette période. <a class="text-link" href="{{ path('version_new') }}">Ajouter une version</a>.</div>
+                        {% endfor %}
+
+                        {% if period.entity.resourceBreakdowns is not empty %}
+                            <div class="resource-box">
+                                <div class="section-heading">
+                                    <h3>Origines des ressources</h3>
+                                </div>
+                                <ul class="resource-list">
+                                    {% for resource in period.entity.resourceBreakdowns %}
+                                        <li>
+                                            <span>{{ resource.name }}{% if resource.notes %} · {{ resource.notes }}{% endif %}</span>
+                                            <strong>{{ resource.amount|number_format(0, ',', ' ') }} {{ resource.unit == 'astrites' ? 'astrites' : (resource.unit == 'pulls' ? 'invocations' : 'marées') }}</strong>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+                </article>
+            {% else %}
+                <div class="empty-state">
+                    <strong>Votre historique commence ici.</strong><br>
+                    Créez une période majeure (par exemple 3.X), puis ajoutez les versions et vos cibles.
+                    <div class="button-row" style="margin-top: 14px">
+                        <a class="button button-primary" href="{{ path('major_version_new') }}">Créer une période majeure</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </section>
+
+        <aside class="panel entry-panel">
+            <h2>Ajouter une invocation</h2>
+            <p class="panel-description">Saisissez rapidement une cible, ses pulls perso et son arme signature.</p>
+            {% if has_versions %}
+                {{ form_start(target_form, {attr: {class: 'form-stack'}}) }}
+                    {{ form_errors(target_form) }}
+                    {{ form_row(target_form.version) }}
+                    {{ form_row(target_form.name) }}
+                    <div class="form-grid">
+                        {{ form_row(target_form.pullsCharacter) }}
+                        {{ form_row(target_form.pullsWeapon) }}
+                    </div>
+                    {{ form_row(target_form.fiftyFiftyResult) }}
+                    <label class="checkbox-row">
+                        {{ form_widget(target_form.isEstimate) }}
+                        {{ form_label(target_form.isEstimate) }}
+                    </label>
+                    {{ form_row(target_form.notes) }}
+                    <button class="button-primary entry-submit" type="submit">Enregistrer la ligne</button>
+                {{ form_end(target_form) }}
+            {% else %}
+                <p class="panel-description">Ajoutez d’abord une période majeure et une version pour pouvoir enregistrer des invocations.</p>
+                {% if periods is empty %}
+                    <a class="button button-primary" href="{{ path('major_version_new') }}">Créer une période</a>
+                {% else %}
+                    <a class="button button-primary" href="{{ path('version_new') }}">Ajouter une version</a>
+                {% endif %}
+            {% endif %}
+        </aside>
+    </div>
+{% endblock %}

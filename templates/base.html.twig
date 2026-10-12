@@ -2,8 +2,10 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0b0e13">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <title>{% block title %}Wuthering Pulls{% endblock %}</title>
         {% block stylesheets %}
         {% endblock %}
 
@@ -18,7 +20,23 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
-    <body>
-        {% block body %}{% endblock %}
+    <body class="min-h-screen antialiased">
+        <header class="site-header">
+            <a class="brand" href="{{ path('dashboard') }}">
+                <span class="brand-mark">W</span>
+                <span>Wuthering <span class="brand-muted">Pulls</span></span>
+            </a>
+            <span class="header-caption">Votre historique d’invocations</span>
+        </header>
+        {% for label, messages in app.flashes %}
+            <div class="flash-stack" role="status">
+                {% for message in messages %}
+                    <div class="flash flash-{{ label }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <main class="page-shell">
+            {% block body %}{% endblock %}
+        </main>
     </body>
 </html>

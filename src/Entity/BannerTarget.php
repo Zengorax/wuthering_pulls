@@ -2,7 +2,9 @@
 
 namespace App\Entity;
 
+use App\Enum\Element;
 use App\Repository\BannerTargetRepository;
+use App\Statistics\PullRules;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -11,6 +13,7 @@ class BannerTarget
 {
     public const FIFTY_FIFTY_WON = 'won';
     public const FIFTY_FIFTY_LOST = 'lost';
+    public const RARITIES = [4, 5];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -21,6 +24,13 @@ class BannerTarget
     #[Assert\NotBlank]
     #[Assert\Length(max: 120)]
     private ?string $name = null;
+
+    #[ORM\Column(type: 'smallint', options: ['default' => 5])]
+    #[Assert\Choice(choices: self::RARITIES)]
+    private int $rarity = 5;
+
+    #[ORM\Column(length: 16, nullable: true, enumType: Element::class)]
+    private ?Element $element = null;
 
     #[ORM\Column(options: ['default' => 0])]
     #[Assert\PositiveOrZero]
@@ -60,6 +70,47 @@ class BannerTarget
         $this->name = $name !== null ? trim($name) : null;
 
         return $this;
+    }
+
+    public function getRarity(): int
+    {
+        return $this->rarity;
+    }
+
+    public function setRarity(int $rarity): static
+    {
+        $this->rarity = $rarity;
+
+        return $this;
+    }
+
+    public function isFiveStar(): bool
+    {
+        return 5 === $this->rarity;
+    }
+
+    public function getElement(): ?Element
+    {
+        return $this->element;
+    }
+
+    public function setElement(?Element $element): static
+    {
+        $this->element = $element;
+
+        return $this;
+    }
+
+    /**
+     * Plafond de la jauge de pitié du personnage : 80, ou 160 si le 50/50 a été perdu (ou dépassé).
+     */
+    public function getCharacterPityCap(): int
+    {
+        $hardPity = PullRules::HARD_PITY;
+
+        return self::FIFTY_FIFTY_LOST === $this->fiftyFiftyResult || $this->pullsCharacter > $hardPity
+            ? 2 * $hardPity
+            : $hardPity;
     }
 
     public function getPullsCharacter(): int

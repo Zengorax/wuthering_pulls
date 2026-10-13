@@ -11,16 +11,31 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class VersionStockType extends AbstractType
 {
+    private const STOCK_FIELDS = [
+        'startLuminite',
+        'startAstrite',
+        'startPulls',
+        'estimatedEndLuminite',
+        'estimatedEndAstrite',
+        'estimatedEndPulls',
+    ];
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder
-            ->add('startLuminite', IntegerType::class, ['label' => 'Luminite début', 'required' => false, 'empty_data' => null, 'attr' => ['min' => 0]])
-            ->add('startAstrite', IntegerType::class, ['label' => 'Astrites début', 'required' => false, 'empty_data' => null, 'attr' => ['min' => 0]])
-            ->add('startPulls', IntegerType::class, ['label' => 'Invocations début', 'required' => false, 'empty_data' => null, 'attr' => ['min' => 0]])
-            ->add('estimatedEndLuminite', IntegerType::class, ['label' => 'Luminite fin estimée', 'required' => false, 'empty_data' => null, 'attr' => ['min' => 0]])
-            ->add('estimatedEndAstrite', IntegerType::class, ['label' => 'Astrites fin estimées', 'required' => false, 'empty_data' => null, 'attr' => ['min' => 0]])
-            ->add('estimatedEndPulls', IntegerType::class, ['label' => 'Invocations fin estimées', 'required' => false, 'empty_data' => null, 'attr' => ['min' => 0]])
-            ->add('equivalence', TextType::class, ['label' => 'Équivalence (ex. S9R8)', 'required' => false]);
+        foreach (self::STOCK_FIELDS as $field) {
+            $builder->add($field, IntegerType::class, [
+                'label' => 'form.stock.'.$field,
+                'required' => false,
+                'empty_data' => null,
+                'attr' => ['min' => 0, 'inputmode' => 'numeric'],
+            ]);
+        }
+
+        $builder->add('equivalence', TextType::class, [
+            'label' => 'form.stock.equivalence',
+            'required' => false,
+            'attr' => ['placeholder' => 'S9R8', 'maxlength' => 32],
+        ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -1,0 +1,35 @@
+{# Les requêtes Turbo Frame (édition en place) n'ont pas besoin de l'habillage complet de la page. #}
+{% extends app.request.headers.has('Turbo-Frame') ? 'form/_frame.html.twig' : 'base.html.twig' %}
+
+{% block title %}{{ title|trans }} · Wuthering Pulls{% endblock %}
+
+{% block body %}
+    {% set content %}
+        <section class="form-page{% if frame_id %} form-page--inline{% endif %}" data-testid="form-page">
+            {% if not frame_id %}
+                <p class="crumb"><a class="link" href="{{ path('dashboard') }}">← {{ 'action.back'|trans }}</a></p>
+            {% endif %}
+            <div class="frame">
+                <div class="panel panel--hud">
+                    <span class="eyebrow">{{ 'form.eyebrow'|trans }}</span>
+                    <h1 class="form-page__title">{{ title|trans }}</h1>
+                    <p class="muted">{{ description|trans }}</p>
+                    {{ form_start(form, {attr: {class: 'form-stack', novalidate: 'novalidate'}|merge(frame_id ? {'data-turbo-frame': '_top'} : {})}) }}
+                        {{ form_errors(form) }}
+                        {{ form_widget(form) }}
+                        <div class="form-actions">
+                            <button class="btn btn--primary" type="submit">{{ 'action.save'|trans }}</button>
+                            <a class="btn btn--ghost" href="{{ path('dashboard') }}">{{ 'action.cancel'|trans }}</a>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </section>
+    {% endset %}
+
+    {% if frame_id %}
+        <turbo-frame id="{{ frame_id }}">{{ content }}</turbo-frame>
+    {% else %}
+        {{ content }}
+    {% endif %}
+{% endblock %}

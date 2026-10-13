@@ -1,0 +1,243 @@
+# Messages au format ICU : l’apostrophe typographique ’ est utilisée partout (l’apostrophe droite est un caractère d’échappement ICU).
+meta:
+    description: "Suivez vos invocations Wuthering Waves par période et par version : totaux, 50/50, pitié, graphiques et projections."
+
+a11y:
+    skip: "Aller au contenu"
+
+brand:
+    tagline: "RÉSONANCE"
+
+intro:
+    sync: "Synchronisation des fréquences"
+
+nav:
+    main: "Navigation principale"
+    dashboard: "Tableau de bord"
+    stats: "Statistiques"
+    history: "Historique"
+
+theme:
+    title: "Changer l’élément du thème"
+
+footer:
+    note: "Suivi local de vos invocations"
+
+convene:
+    aria: "Nouvelle invocation 5 étoiles"
+    subtitle: "Résonateur 5★ enregistré"
+
+action:
+    add_period: "Période"
+    add_version: "Version"
+    back: "Retour au tableau de bord"
+    save: "Enregistrer"
+    cancel: "Annuler"
+    close: "Fermer"
+    continue: "Continuer"
+    edit: "Modifier"
+    delete: "Supprimer"
+    edit_period: "Modifier la période {name}"
+    edit_version: "Modifier la version {name}"
+    edit_target: "Modifier {name}"
+
+dashboard:
+    title: "Historique des invocations"
+
+hero:
+    eyebrow: "Journal de résonance · Wuthering Waves"
+    title: "Chaque fréquence raconte une invocation"
+    lead: "Suivez vos convocations, vos 50/50 et vos réserves d’astrites version après version, et mesurez votre chance réelle face à la pitié."
+    cta_record: "Enregistrer une invocation"
+    cta_start: "Commencer l’historique"
+    convenes: "Convocations"
+
+unit:
+    pulls: "pulls"
+    astrites: "astrites"
+    astrites_short: "astrites"
+    luminite: "lunite"
+    tides: "marées"
+
+stats:
+    aria: "Statistiques de l’historique"
+    character_avg: "Moyenne personnage · 5★ réels"
+    counted_targets: "{count, plural, =0 {Aucune cible comptabilisée} one {# cible comptabilisée} other {# cibles comptabilisées}}"
+    vs_expected: "par rapport à la moyenne attendue (≈ {expected} pulls)"
+    weapon_avg: "Moyenne arme signature · réels"
+    counted_weapons: "{count, plural, =0 {Aucune arme comptabilisée} one {# arme comptabilisée} other {# armes comptabilisées}}"
+    fifty_fifty: "50/50 remportés"
+    won_lost: "{won} gagnés · {lost} perdus"
+    fifty_hint: "Théorique : 50 %. Lignes réelles uniquement."
+    real_vs_estimate: "Réel · Estimé"
+    real: "pulls réels"
+    estimated: "estimés"
+
+chart:
+    title: "Flux d’invocations"
+    modes: "Mode d’affichage du graphique"
+    tab:
+        total: "Total"
+        split: "Perso / Arme"
+        cumulative: "Cumulé"
+        distribution: "Distribution"
+    character: "Personnage"
+    weapon: "Arme"
+    targets: "cibles 5★"
+
+projection:
+    title: "Projection"
+    from: "À partir du stock de fin estimé de la version {version}"
+    start: "Stock estimé"
+    income: "Gain moyen / version"
+    guaranteed: "5★ garantis (160 pulls)"
+    expected: "5★ attendus (moyenne)"
+    note: "Estimation indicative déduite des stocks de début et de fin que vous avez saisis."
+    empty: "Renseignez le stock de début et de fin estimée d’au moins une version (lien « Stock & estimations ») pour obtenir une projection."
+
+history:
+    aria: "Historique par période majeure"
+    title: "Historique"
+
+empty:
+    title: "Votre historique commence ici."
+    text: "Créez une période majeure (par exemple 3.X), puis ajoutez ses versions et vos cibles."
+    cta: "Créer une période majeure"
+    no_version: "Aucune version n’est encore rattachée à cette période."
+
+entry:
+    eyebrow: "Terminal de convocation"
+    title: "Nouvelle invocation"
+    description: "Saisissez une cible, ses pulls personnage et son arme signature."
+    submit: "Enregistrer la ligne"
+    need_version: "Ajoutez d’abord une période majeure et une version pour enregistrer des invocations."
+
+period:
+    title: "Période {name}"
+    of_which_estimated: "dont {count, number} estimés"
+
+resources:
+    title: "Origines des ressources"
+    add: "Source"
+
+version:
+    title: "Version {name}"
+    estimated: "{count, number} estimés"
+    no_targets: "Aucune session enregistrée pour cette version."
+
+stock:
+    title: "Stock & projections"
+    equivalence: "Équivalence de fin de version"
+    edit: "Stock & estimations"
+    fill: "Renseigner le stock"
+    start: "Début de version"
+    end: "Fin estimée"
+    income: "Gain implicite sur la version : ≈ {count, number} pulls"
+
+target:
+    rarity: "{count} étoiles"
+    character: "Perso"
+    weapon: "Arme"
+    total: "Total"
+    pity_character: "Pitié personnage : {pulls} / {cap}"
+    pity_weapon: "Pitié arme : {pulls} / {cap}"
+    won: "50/50 gagné"
+    lost: "50/50 perdu"
+    estimate: "Estimation"
+    real: "Réel"
+
+confirm:
+    delete_target: "Supprimer la ligne « {name} » ?"
+    delete_version: "Supprimer la version {name} et toutes ses lignes d’invocation ?"
+    delete_period: "Supprimer la période {name}, ses versions et ses ressources ?"
+    delete_resource: "Supprimer cette origine de ressources ?"
+    ok: "Confirmer"
+    cancel: "Annuler"
+
+flash:
+    target:
+        created: "La ligne d’invocation a été enregistrée."
+        updated: "La ligne d’invocation a été modifiée."
+        deleted: "La ligne d’invocation a été supprimée."
+    major_version:
+        created: "La période a été créée."
+        updated: "La période a été modifiée."
+        deleted: "La période a été supprimée."
+    version:
+        created: "La version a été créée."
+        updated: "La version a été modifiée."
+        stock_updated: "Le stock de la version a été mis à jour."
+        deleted: "La version a été supprimée."
+    resource:
+        created: "La source de ressources a été ajoutée."
+        updated: "La source de ressources a été modifiée."
+        deleted: "La source de ressources a été supprimée."
+
+page:
+    target_edit:
+        title: "Modifier une invocation"
+        description: "Mettez à jour les pulls, le statut ou les remarques de cette cible."
+    major_version_new:
+        title: "Nouvelle période majeure"
+        description: "Créez un regroupement, par exemple 3.X, pour organiser ses versions."
+    major_version_edit:
+        title: "Modifier la période"
+        description: "Renommez cette période majeure."
+    version_new:
+        title: "Nouvelle version"
+        description: "Associez une version du jeu (3.0, 3.1…) à une période majeure."
+    version_edit:
+        title: "Modifier la version"
+        description: "Changez le nom, la période ou les dates de cette version."
+    version_stock:
+        title: "Stock & estimations"
+        description: "Tous les champs sont facultatifs. Saisissez vos stocks de début et vos estimations de fin."
+    resource_new:
+        title: "Ajouter une origine de ressources"
+        description: "Consignez une source d’astrites, d’invocations ou de marées pour une période majeure."
+    resource_edit:
+        title: "Modifier une origine"
+        description: "Mettez à jour cette source de ressources."
+
+form:
+    eyebrow: "Console de résonance"
+    major_version:
+        name: "Période majeure"
+    version:
+        name: "Version"
+        major_version: "Période majeure"
+        major_version_placeholder: "Choisir une période"
+        starts_at: "Début"
+        ends_at: "Fin"
+    target:
+        version: "Version"
+        version_placeholder: "Choisir une version"
+        name: "Personnage / cible"
+        name_placeholder: "Lynae, Aemeath…"
+        rarity: "Rareté"
+        element: "Élément"
+        element_none: "Aucun"
+        pulls_character: "Pulls perso"
+        pulls_weapon: "Pulls arme sig."
+        fifty_fifty: "50/50 personnage"
+        fifty_fifty_none: "—"
+        fifty_fifty_won: "Gagné"
+        fifty_fifty_lost: "Perdu"
+        is_estimate: "Estimation"
+        notes: "Remarques"
+        notes_placeholder: "Détails facultatifs…"
+    stock:
+        startLuminite: "Lunite début"
+        startAstrite: "Astrites début"
+        startPulls: "Invocations début"
+        estimatedEndLuminite: "Lunite fin estimée"
+        estimatedEndAstrite: "Astrites fin estimés"
+        estimatedEndPulls: "Invocations fin estimées"
+        equivalence: "Équivalence (ex. S9R8)"
+    resource:
+        major_version: "Période majeure"
+        name: "Origine"
+        name_placeholder: "Daily, abonnement, boutique…"
+        amount: "Quantité"
+        unit: "Unité"
+        notes: "Remarques"

@@ -3,15 +3,18 @@
 namespace App\Entity;
 
 use App\Repository\VersionRepository;
+use App\Statistics\Equivalence;
+use App\Statistics\PullRules;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: VersionRepository::class)]
 #[ORM\UniqueConstraint(name: 'uniq_version_per_major', columns: ['major_version_id', 'name'])]
-#[UniqueEntity(fields: ['majorVersion', 'name'], message: 'Cette version existe déjà dans cette période majeure.')]
+#[UniqueEntity(fields: ['majorVersion', 'name'], message: 'version.unique')]
 class Version
 {
     #[ORM\Id]
@@ -23,6 +26,13 @@ class Version
     #[Assert\NotBlank]
     #[Assert\Length(max: 16)]
     private ?string $name = null;
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $startsAt = null;
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    #[Assert\GreaterThanOrEqual(propertyPath: 'startsAt', message: 'version.ends_before_start')]
+    private ?\DateTimeImmutable $endsAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'versions')]
     #[ORM\JoinColumn(nullable: false)]
@@ -61,6 +71,7 @@ class Version
 
     #[ORM\Column(length: 32, nullable: true)]
     #[Assert\Length(max: 32)]
+    #[Assert\Regex(pattern: Equivalence::PATTERN, message: 'version.equivalence.invalid')]
     private ?string $equivalence = null;
 
     public function __construct()
@@ -81,6 +92,30 @@ class Version
     public function setName(?string $name): static
     {
         $this->name = $name !== null ? trim($name) : null;
+
+        return $this;
+    }
+
+    public function getStartsAt(): ?\DateTimeImmutable
+    {
+        return $this->startsAt;
+    }
+
+    public function setStartsAt(?\DateTimeImmutable $startsAt): static
+    {
+        $this->startsAt = $startsAt;
+
+        return $this;
+    }
+
+    public function getEndsAt(): ?\DateTimeImmutable
+    {
+        return $this->endsAt;
+    }
+
+    public function setEndsAt(?\DateTimeImmutable $endsAt): static
+    {
+        $this->endsAt = $endsAt;
 
         return $this;
     }
@@ -128,6 +163,60 @@ class Version
             static fn (BannerTarget $target): int => $target->getTotalPulls(),
             $this->bannerTargets->toArray(),
         ));
+    }
+
+    /**
+     * Pulls issus de lignes réellement jouées (hors estimations).
+     */
+    public function getRealPulls(): int
+    {
+        return array_sum(array_map(
+            static fn (BannerTarget $target): int => $target->isEstimate() ? 0 : $target->getTotalPulls(),
+            $this->bannerTargets->toArray(),
+        ));
+    }
+
+    public function getEstimatedPulls(): int
+    {
+        return $this->getTotalPulls() - $this->getRealPulls();
+    }
+
+    /**
+     * Stock de début converti en pulls (luminite et astrites valent 1 pour 1), null si rien n'est saisi.
+     */
+    public function getStartEquivalentPulls(): ?float
+    {
+        return self::toEquivalentPulls($this->startLuminite, $this->startAstrite, $this->startPulls);
+    }
+
+    public function getEstimatedEndEquivalentPulls(): ?float
+    {
+        return self::toEquivalentPulls($this->estimatedEndLuminite, $this->estimatedEndAstrite, $this->estimatedEndPulls);
+    }
+
+    /**
+     * Pulls gagnés pendant la version, déduits du stock de début, du stock de fin estimé et des pulls dépensés.
+     */
+    public function getImpliedIncomePulls(): ?float
+    {
+        $start = $this->getStartEquivalentPulls();
+        $end = $this->getEstimatedEndEquivalentPulls();
+
+        return null === $start || null === $end ? null : $end - $start + $this->getTotalPulls();
+    }
+
+    public function getEquivalenceValue(): ?Equivalence
+    {
+        return Equivalence::tryFromString($this->equivalence);
+    }
+
+    private static function toEquivalentPulls(?int $luminite, ?int $astrite, ?int $pulls): ?float
+    {
+        if (null === $luminite && null === $astrite && null === $pulls) {
+            return null;
+        }
+
+        return ($pulls ?? 0) + PullRules::astritesToPulls(($luminite ?? 0) + ($astrite ?? 0));
     }
 
     public function getStartLuminite(): ?int
@@ -209,7 +298,8 @@ class Version
 
     public function setEquivalence(?string $equivalence): static
     {
-        $this->equivalence = $equivalence !== null ? trim($equivalence) : null;
+        $equivalence = null !== $equivalence ? strtoupper(trim($equivalence)) : null;
+        $this->equivalence = '' === $equivalence ? null : $equivalence;
 
         return $this;
     }

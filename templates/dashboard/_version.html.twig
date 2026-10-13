@@ -1,0 +1,75 @@
+{% import '_macros.html.twig' as ui %}
+{% set version = summary.version %}
+
+<section class="version" data-testid="version">
+    <i class="version__node" aria-hidden="true"></i>
+    <header class="version__head">
+        <div>
+            <h3 class="version__title">{{ 'version.title'|trans({name: version.name}) }}</h3>
+            {% if version.startsAt or version.endsAt %}
+                <p class="version__dates">
+                    {{ ui.icon('calendar', 'icon icon--sm') }}
+                    {% if version.startsAt %}{{ version.startsAt|format_date(pattern: 'd MMM yyyy', locale: app.request.locale) }}{% endif %}
+                    {% if version.startsAt and version.endsAt %}→{% endif %}
+                    {% if version.endsAt %}{{ version.endsAt|format_date(pattern: 'd MMM yyyy', locale: app.request.locale) }}{% endif %}
+                </p>
+            {% endif %}
+        </div>
+        <div class="version__totals">
+            <span class="badge badge--total" data-testid="version-total">{{ version.totalPulls|number_format(0, ',', ' ') }} {{ 'unit.pulls'|trans }}</span>
+            {% if version.estimatedPulls > 0 %}<span class="badge badge--estimate">{{ 'version.estimated'|trans({count: version.estimatedPulls}) }}</span>{% endif %}
+        </div>
+        <div class="version__tools">
+            <a class="icon-btn" href="{{ path('version_edit', {id: version.id}) }}" title="{{ 'action.edit'|trans }}" aria-label="{{ 'action.edit_version'|trans({name: version.name}) }}">{{ ui.icon('edit') }}</a>
+            {{ ui.delete_form(path('version_delete', {id: version.id}), 'delete-version-' ~ version.id, 'confirm.delete_version'|trans({name: version.name}), 'action.delete'|trans) }}
+        </div>
+    </header>
+
+    {% if summary.targets is not empty %}
+        <div class="targets" data-controller="reveal">
+            {% for target in summary.targets %}
+                {% include 'dashboard/_target.html.twig' with {target: target} only %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted version__empty">{{ 'version.no_targets'|trans }}</p>
+    {% endif %}
+
+    {# Stock et projections : modifiable en place via un Turbo Frame. #}
+    <turbo-frame id="version-stock-{{ version.id }}" class="stock-frame">
+        {% set has_stock = version.startEquivalentPulls is not null or version.estimatedEndEquivalentPulls is not null or version.equivalence %}
+        <div class="stock{% if not has_stock %} stock--empty{% endif %}" data-testid="stock-box">
+            <div class="stock__head">
+                <span class="eyebrow">{{ 'stock.title'|trans }}</span>
+                {% if version.equivalenceValue %}
+                    <span class="equivalence" title="{{ 'stock.equivalence'|trans }}" data-testid="equivalence">
+                        <b>S{{ version.equivalenceValue.sets }}</b><b>R{{ version.equivalenceValue.refines }}</b>
+                    </span>
+                {% endif %}
+                <a class="link" href="{{ path('version_stock_edit', {id: version.id}) }}">{{ (has_stock ? 'stock.edit' : 'stock.fill')|trans }}</a>
+            </div>
+            {% if has_stock %}
+                <div class="stock__cols">
+                    {% for key in ['start', 'end'] %}
+                        {% set luminite = key == 'start' ? version.startLuminite : version.estimatedEndLuminite %}
+                        {% set astrite = key == 'start' ? version.startAstrite : version.estimatedEndAstrite %}
+                        {% set pulls = key == 'start' ? version.startPulls : version.estimatedEndPulls %}
+                        {% set equivalent = key == 'start' ? version.startEquivalentPulls : version.estimatedEndEquivalentPulls %}
+                        <div>
+                            <span class="stock__label">{{ ('stock.' ~ key)|trans }}</span>
+                            <div class="stock__values">
+                                {% if luminite is not null %}<span>{{ luminite|number_format(0, ',', ' ') }} <i>{{ 'unit.luminite'|trans }}</i></span>{% endif %}
+                                {% if astrite is not null %}<span>{{ astrite|number_format(0, ',', ' ') }} <i>{{ 'unit.astrites'|trans }}</i></span>{% endif %}
+                                {% if pulls is not null %}<span>{{ pulls|number_format(0, ',', ' ') }} <i>{{ 'unit.pulls'|trans }}</i></span>{% endif %}
+                                {% if equivalent is not null %}<em>≈ {{ equivalent|round|number_format(0, ',', ' ') }} {{ 'unit.pulls'|trans }}</em>{% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if version.impliedIncomePulls is not null %}
+                    <p class="stock__income">{{ 'stock.income'|trans({count: version.impliedIncomePulls|round}) }}</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </turbo-frame>
+</section>

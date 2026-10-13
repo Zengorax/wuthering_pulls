@@ -13,7 +13,7 @@ class MajorVersionType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add('name', TextType::class, [
-            'label' => 'Période majeure',
+            'label' => 'form.major_version.name',
             'attr' => ['placeholder' => '3.X'],
         ]);
     }

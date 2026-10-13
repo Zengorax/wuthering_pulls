@@ -1,5 +1,21 @@
-
 services:
+  php:
+    build: .
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      # Dans le réseau Docker, la base est joignable via le nom du service.
+      DATABASE_HOST: database
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+      # Cache, logs et dépendances Composer restent dans des volumes Docker : le système de fichiers
+      # monté depuis Windows est beaucoup trop lent pour des milliers de petits fichiers PHP.
+      - app_var:/app/var
+      - app_vendor:/app/vendor
+
 ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
@@ -20,6 +36,8 @@ services:
 ###< doctrine/doctrine-bundle ###
 
 volumes:
+  app_var:
+  app_vendor:
 ###> doctrine/doctrine-bundle ###
   database_data:
 ###< doctrine/doctrine-bundle ###

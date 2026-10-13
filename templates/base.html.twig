@@ -1,42 +1,141 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ app.request.locale }}" data-element="tacet">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#0b0e13">
+        <meta name="description" content="{{ 'meta.description'|trans }}">
+        <meta name="theme-color" content="#06080c">
+        <meta name="color-scheme" content="dark">
+        {# Turbo : conserve le défilement après une redirection vers la même page, transitions entre pages. #}
+        <meta name="turbo-refresh-scroll" content="preserve">
+        <meta name="view-transition" content="same-origin">
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
         <title>{% block title %}Wuthering Pulls{% endblock %}</title>
-        {% block stylesheets %}
-        {% endblock %}
-
+        {# Appliqué avant le premier rendu pour éviter tout flash : élément choisi et écran d'intro (1 fois par session). #}
+        <script>
+            document.documentElement.classList.add('js');
+            try {
+                var element = localStorage.getItem('wp-element');
+                if (element) { document.documentElement.dataset.element = element; }
+                if (!sessionStorage.getItem('wp-intro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    document.documentElement.dataset.intro = '1';
+                }
+            } catch (e) {}
+        </script>
+        {% block stylesheets %}{% endblock %}
         {% block javascripts %}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
-
-        {% set frankenphp_hot_reload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
-        {% if frankenphp_hot_reload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphp_hot_reload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
-        {% endif %}
     </head>
-    <body class="min-h-screen antialiased">
-        <header class="site-header">
-            <a class="brand" href="{{ path('dashboard') }}">
-                <span class="brand-mark">W</span>
-                <span>Wuthering <span class="brand-muted">Pulls</span></span>
+    <body data-controller="pointer" data-confirm-ok="{{ 'confirm.ok'|trans }}" data-confirm-cancel="{{ 'confirm.cancel'|trans }}">
+        {% import '_macros.html.twig' as ui %}
+        <a class="skip-link" href="#main">{{ 'a11y.skip'|trans }}</a>
+
+        {# Décor persistant entre les pages : le ciel et les étoiles ne se rechargent pas à chaque navigation. #}
+        <div class="sky" id="sky" data-turbo-permanent aria-hidden="true">
+            <div class="sky__aurora"></div>
+            <div class="sky__grid"></div>
+            <svg class="sky__halo" viewBox="0 0 800 800">
+                <circle class="halo-a" cx="400" cy="400" r="380"/>
+                <circle class="halo-b" cx="400" cy="400" r="330"/>
+                <circle class="halo-c" cx="400" cy="400" r="250"/>
+                <circle class="halo-d" cx="400" cy="400" r="180"/>
+            </svg>
+            <canvas class="sky__stars" data-controller="starfield"></canvas>
+            <div class="sky__scan"></div>
+            <div class="sky__vignette"></div>
+        </div>
+        <div class="grain" aria-hidden="true"></div>
+
+        <div class="intro" data-controller="intro" aria-hidden="true">
+            <div class="intro__logo">
+                <svg viewBox="0 0 120 120">
+                    <circle class="intro__ring" cx="60" cy="60" r="54"/>
+                    <circle class="intro__ring intro__ring--inner" cx="60" cy="60" r="44"/>
+                    <path class="intro__w" d="M22 40l13 42 12-28 13 28 13-28 12 28 13-42"/>
+                </svg>
+            </div>
+            <div class="intro__label">{{ 'intro.sync'|trans }}</div>
+            <div class="intro__bar"><i data-intro-target="bar"></i></div>
+            <div class="intro__pct"><span data-intro-target="pct">0</span>%</div>
+        </div>
+
+        <header class="topbar">
+            <a class="logo" href="{{ path('dashboard') }}" aria-label="Wuthering Pulls">
+                <span class="logo__mark" aria-hidden="true">
+                    <svg viewBox="0 0 44 44">
+                        <circle class="logo__ring" cx="22" cy="22" r="20"/>
+                        <circle class="logo__ring logo__ring--b" cx="22" cy="22" r="15"/>
+                        <path class="logo__w" d="M9 16l5 15 4.5-9.5L23 31l4.5-9.5L32 31l5-15"/>
+                    </svg>
+                </span>
+                <span class="logo__text">WUTHERING<small>PULLS · {{ 'brand.tagline'|trans }}</small></span>
             </a>
-            <span class="header-caption">Votre historique d’invocations</span>
+
+            <nav class="topbar__nav" aria-label="{{ 'nav.main'|trans }}">
+                <a href="{{ path('dashboard') }}" {% if app.current_route == 'dashboard' %}aria-current="page"{% endif %}>{{ 'nav.dashboard'|trans }}</a>
+                <a href="{{ path('dashboard') }}#stats">{{ 'nav.stats'|trans }}</a>
+                <a href="{{ path('dashboard') }}#history">{{ 'nav.history'|trans }}</a>
+            </nav>
+
+            <div class="topbar__tools">
+                <div class="elements" data-controller="theme">
+                    <button type="button" class="chip-btn" data-theme-target="button" data-action="theme#toggle" aria-haspopup="true" aria-expanded="false" title="{{ 'theme.title'|trans }}">
+                        <i class="el-dot" data-theme-target="dot"></i>
+                        <span data-theme-target="label">Tacet</span>
+                    </button>
+                    <ul class="elements__menu" data-theme-target="menu" hidden>
+                        {% for key, label in {tacet: 'Tacet', glacio: 'Glacio', fusion: 'Fusion', electro: 'Electro', aero: 'Aero', spectro: 'Spectro', havoc: 'Havoc'} %}
+                            <li><button type="button" data-action="theme#pick" data-theme-element-param="{{ key }}" data-el="{{ key }}"><i class="el-dot"></i>{{ label }}</button></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <a class="btn btn--sm" href="{{ path('major_version_new') }}">{{ ui.icon('plus', 'icon icon--sm') }}{{ 'action.add_period'|trans }}</a>
+            </div>
         </header>
-        {% for label, messages in app.flashes %}
-            <div class="flash-stack" role="status">
+
+        <div class="toasts" role="status" aria-live="polite">
+            {% for type, messages in app.flashes(['success', 'error']) %}
                 {% for message in messages %}
-                    <div class="flash flash-{{ label }}">{{ message }}</div>
+                <div class="toast" data-controller="toast">
+                    <span class="toast__icon">{{ ui.icon('spark') }}</span>
+                    <span class="toast__text">{{ message|trans }}</span>
+                    <button type="button" class="toast__close" data-action="toast#close" aria-label="{{ 'action.close'|trans }}">{{ ui.icon('close') }}</button>
+                    <i class="toast__timer"></i>
+                </div>
                 {% endfor %}
+            {% endfor %}
+        </div>
+
+        {% for name in app.flashes('convene') %}
+            <div class="convene{% if art(name) %} convene--art{% endif %}" data-controller="convene" data-convene-name-value="{{ name }}" role="dialog" aria-modal="true" aria-label="{{ 'convene.aria'|trans }}">
+                <i class="convene__streak" style="--r:-32deg;--d:0s"></i>
+                <i class="convene__streak" style="--r:14deg;--d:.12s"></i>
+                <i class="convene__streak" style="--r:58deg;--d:.22s"></i>
+                <i class="convene__streak" style="--r:-74deg;--d:.18s"></i>
+                <i class="convene__ring"></i>
+                {% if art(name) %}
+                    <img class="convene__art" src="{{ art(name) }}" alt="" decoding="async">
+                {% elseif portrait(name) %}
+                    <img class="convene__portrait" src="{{ portrait(name) }}" alt="" decoding="async">
+                {% endif %}
+                <div class="convene__card">
+                    <div class="convene__stars" aria-hidden="true">★ ★ ★ ★ ★</div>
+                    <h2 class="convene__name">{{ name }}</h2>
+                    <p>{{ 'convene.subtitle'|trans }}</p>
+                    <button type="button" class="btn btn--primary" data-action="convene#close" data-convene-target="close">{{ 'action.continue'|trans }}</button>
+                </div>
             </div>
         {% endfor %}
-        <main class="page-shell">
+
+        <main id="main" class="page" tabindex="-1">
             {% block body %}{% endblock %}
         </main>
+
+        <footer class="footer">
+            <span>Wuthering Pulls</span>
+            <span class="footer__sep" aria-hidden="true"></span>
+            <span>{{ 'footer.note'|trans }}</span>
+        </footer>
     </body>
 </html>

@@ -1,0 +1,71 @@
+{% extends 'form_div_layout.html.twig' %}
+
+{# Rangée de champ : label + widget + aide + erreurs, avec ligne lumineuse au focus. #}
+{% block form_row -%}
+    {%- set widget_attr = {} -%}
+    <div class="field{% if not form.vars.valid %} field--invalid{% endif %}">
+        {{- form_label(form) -}}
+        {{- form_widget(form, widget_attr) -}}
+        {{- form_help(form) -}}
+        {{- form_errors(form) -}}
+    </div>
+{%- endblock form_row %}
+
+{# Conteneur des champs d'un formulaire : grille espacée (les erreurs globales sont rendues par la page). #}
+{% block form_widget_compound -%}
+    <div {{ block('widget_container_attributes') }} class="form-fields">
+        {{- block('form_rows') -}}
+        {{- form_rest(form) -}}
+    </div>
+{%- endblock form_widget_compound %}
+
+{# Case à cocher = interrupteur incliné. #}
+{% block checkbox_row -%}
+    <div class="field field--switch{% if not form.vars.valid %} field--invalid{% endif %}">
+        <label class="switch" for="{{ id }}">
+            {{- form_widget(form) -}}
+            <span class="switch__track" aria-hidden="true"></span>
+            <span class="switch__label">{{ translation_domain is same as(false) ? label : label|trans(label_translation_parameters, translation_domain) }}</span>
+        </label>
+        {{- form_help(form) -}}
+        {{- form_errors(form) -}}
+    </div>
+{%- endblock checkbox_row %}
+
+{# Boutons radio = sélecteur segmenté. #}
+{% block choice_widget_expanded -%}
+    <div class="seg" role="radiogroup" {{ block('widget_container_attributes') }}>
+        {%- for child in form %}
+            {{- form_widget(child) -}}
+            {{- form_label(child, null, {translation_domain: choice_translation_domain}) -}}
+        {% endfor -%}
+    </div>
+{%- endblock choice_widget_expanded %}
+
+{% block choice_widget_collapsed -%}
+    <div class="select">{{ parent() }}</div>
+{%- endblock choice_widget_collapsed %}
+
+{# Champ du nom de personnage : suggestions depuis les noms connus. #}
+{% block resonator_name_widget -%}
+    {{- block('form_widget_simple') -}}
+    <datalist id="{{ id }}_list">
+        {%- for name in form.parent.vars.known_names|default([]) %}<option value="{{ name }}"></option>{% endfor -%}
+    </datalist>
+{%- endblock resonator_name_widget %}
+
+{% block form_errors -%}
+    {%- if errors|length > 0 -%}
+        <ul class="field__errors" role="alert">
+            {%- for error in errors -%}
+                <li>{{ error.message }}</li>
+            {%- endfor -%}
+        </ul>
+    {%- endif -%}
+{%- endblock form_errors %}
+
+{% block form_help -%}
+    {%- if help is not empty -%}
+        <p class="field__help">{{ translation_domain is same as(false) ? help : help|trans(help_translation_parameters, translation_domain) }}</p>
+    {%- endif -%}
+{%- endblock form_help %}

@@ -1,0 +1,8 @@
+major_version:
+    unique: "Cette période majeure existe déjà."
+
+version:
+    unique: "Cette version existe déjà dans cette période majeure."
+    ends_before_start: "La date de fin doit être postérieure à la date de début."
+    equivalence:
+        invalid: "Utilisez le format S9R8 (S et R suivis d’un nombre)."

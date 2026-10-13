@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\MajorVersionRepository;
+use App\Statistics\PullRules;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -10,7 +11,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: MajorVersionRepository::class)]
-#[UniqueEntity(fields: ['name'], message: 'Cette période majeure existe déjà.')]
+#[UniqueEntity(fields: ['name'], message: 'major_version.unique')]
 class MajorVersion
 {
     #[ORM\Id]
@@ -120,8 +121,21 @@ class MajorVersion
         ));
     }
 
+    public function getRealPulls(): int
+    {
+        return array_sum(array_map(
+            static fn (Version $version): int => $version->getRealPulls(),
+            $this->versions->toArray(),
+        ));
+    }
+
+    public function getEstimatedPulls(): int
+    {
+        return $this->getTotalPulls() - $this->getRealPulls();
+    }
+
     public function getTotalAstrites(): int
     {
-        return $this->getTotalPulls() * 160;
+        return $this->getTotalPulls() * PullRules::ASTRITES_PER_PULL;
     }
 }

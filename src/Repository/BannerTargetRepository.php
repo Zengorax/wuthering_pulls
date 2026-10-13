@@ -15,4 +15,21 @@ class BannerTargetRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, BannerTarget::class);
     }
+
+    /**
+     * Noms déjà saisis, pour l'autocomplétion.
+     *
+     * @return list<string>
+     */
+    public function findKnownNames(): array
+    {
+        return array_column(
+            $this->createQueryBuilder('t')
+                ->select('DISTINCT t.name AS name')
+                ->orderBy('t.name')
+                ->getQuery()
+                ->getArrayResult(),
+            'name',
+        );
+    }
 }

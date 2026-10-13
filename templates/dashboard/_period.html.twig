@@ -1,0 +1,68 @@
+{% import '_macros.html.twig' as ui %}
+{% set period = summary.period %}
+{% set body_id = 'period-body-' ~ period.id %}
+
+<article class="period reveal" style="--i:{{ index }}" data-controller="accordion" data-accordion-key-value="period-{{ period.id }}" data-state="open" data-testid="period">
+    <div class="frame frame--gold">
+        <div class="panel panel--hud">
+            <header class="period__head">
+                <button type="button" class="period__toggle" data-action="accordion#toggle" data-accordion-target="button" aria-expanded="true" aria-controls="{{ body_id }}">
+                    <span class="period__badge">{{ period.name }}</span>
+                    <span class="period__meta">
+                        <span class="period__name">{{ 'period.title'|trans({name: period.name}) }}</span>
+                        <span class="period__total" data-testid="period-total">
+                            <span class="num">{{ period.totalPulls|number_format(0, ',', ' ') }} {{ 'unit.pulls'|trans }}</span>
+                            · <span class="num">{{ period.totalAstrites|number_format(0, ',', ' ') }} {{ 'unit.astrites'|trans }}</span>
+                            {% if period.estimatedPulls > 0 %}· <span class="est">{{ 'period.of_which_estimated'|trans({count: period.estimatedPulls}) }}</span>{% endif %}
+                        </span>
+                    </span>
+                    {{ ui.icon('chevron', 'icon period__chevron') }}
+                </button>
+                <div class="period__tools">
+                    <a class="icon-btn" href="{{ path('version_new', {major: period.id}) }}" title="{{ 'action.add_version'|trans }}" aria-label="{{ 'action.add_version'|trans }}">{{ ui.icon('plus') }}</a>
+                    <a class="icon-btn" href="{{ path('major_version_edit', {id: period.id}) }}" title="{{ 'action.edit'|trans }}" aria-label="{{ 'action.edit_period'|trans({name: period.name}) }}">{{ ui.icon('edit') }}</a>
+                    {{ ui.delete_form(path('major_version_delete', {id: period.id}), 'delete-major-version-' ~ period.id, 'confirm.delete_period'|trans({name: period.name}), 'action.delete'|trans) }}
+                </div>
+            </header>
+
+            <div class="collapsible" id="{{ body_id }}" data-accordion-target="body">
+                <div class="collapsible__inner">
+                    <div class="timeline">
+                        {% for version_summary in summary.versions %}
+                            {% include 'dashboard/_version.html.twig' with {summary: version_summary} only %}
+                        {% else %}
+                            <div class="empty empty--inline">
+                                {{ 'empty.no_version'|trans }}
+                                <a class="link" href="{{ path('version_new', {major: period.id}) }}">{{ 'action.add_version'|trans }}</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <section class="resources" aria-label="{{ 'resources.title'|trans }}">
+                        <div class="resources__head">
+                            <h3>{{ 'resources.title'|trans }}</h3>
+                            {% if summary.resourcePulls > 0 %}<span class="muted">≈ {{ summary.resourcePulls|round|number_format(0, ',', ' ') }} {{ 'unit.pulls'|trans }}</span>{% endif %}
+                            <a class="link" href="{{ path('resource_new', {major: period.id}) }}">+ {{ 'resources.add'|trans }}</a>
+                        </div>
+                        {% if summary.resources is not empty %}
+                            <ul class="resource-list" data-testid="resource-list">
+                                {% for line in summary.resources %}
+                                    {% set resource = line.resource %}
+                                    <li>
+                                        <span class="resource-list__name">{{ resource.name }}{% if resource.notes %}<small> · {{ resource.notes }}</small>{% endif %}</span>
+                                        <span class="resource-list__bar" aria-hidden="true"><i style="--w:{{ line.share }}%"></i></span>
+                                        <strong class="num">{{ resource.amount|number_format(0, ',', ' ') }} {{ ('unit.' ~ resource.unit)|trans }}</strong>
+                                        <span class="resource-list__tools">
+                                            <a class="icon-btn" href="{{ path('resource_edit', {id: resource.id}) }}" title="{{ 'action.edit'|trans }}" aria-label="{{ 'action.edit'|trans }}">{{ ui.icon('edit') }}</a>
+                                            {{ ui.delete_form(path('resource_delete', {id: resource.id}), 'delete-resource-' ~ resource.id, 'confirm.delete_resource'|trans, 'action.delete'|trans) }}
+                                        </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</article>

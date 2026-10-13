@@ -21,27 +21,27 @@ class ResourceBreakdownType extends AbstractType
             ->add('majorVersion', EntityType::class, [
                 'class' => MajorVersion::class,
                 'choice_label' => 'name',
-                'label' => 'Période majeure',
+                'label' => 'form.resource.major_version',
             ])
             ->add('name', TextType::class, [
-                'label' => 'Origine',
-                'attr' => ['placeholder' => 'Daily, abonnement, boutique…'],
+                'label' => 'form.resource.name',
+                'attr' => ['placeholder' => 'form.resource.name_placeholder'],
             ])
             ->add('amount', IntegerType::class, [
-                'label' => 'Quantité',
+                'label' => 'form.resource.amount',
                 'empty_data' => '0',
-                'attr' => ['min' => 0],
+                'attr' => ['min' => 0, 'inputmode' => 'numeric'],
             ])
             ->add('unit', ChoiceType::class, [
-                'label' => 'Unité',
+                'label' => 'form.resource.unit',
                 'choices' => [
-                    'Astrites' => ResourceBreakdown::UNIT_ASTRITES,
-                    'Invocations' => ResourceBreakdown::UNIT_PULLS,
-                    'Marées' => ResourceBreakdown::UNIT_TIDES,
+                    'unit.astrites' => ResourceBreakdown::UNIT_ASTRITES,
+                    'unit.pulls' => ResourceBreakdown::UNIT_PULLS,
+                    'unit.tides' => ResourceBreakdown::UNIT_TIDES,
                 ],
             ])
             ->add('notes', TextareaType::class, [
-                'label' => 'Remarques',
+                'label' => 'form.resource.notes',
                 'required' => false,
                 'attr' => ['rows' => 2],
             ]);

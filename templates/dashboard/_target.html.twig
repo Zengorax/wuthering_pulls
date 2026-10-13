@@ -1,0 +1,57 @@
+{% import '_macros.html.twig' as ui %}
+{% set soft = constant('App\\Statistics\\PullRules::SOFT_PITY') %}
+{% set hard = constant('App\\Statistics\\PullRules::HARD_PITY') %}
+{% set cap = target.characterPityCap %}
+{% set art = art_thumb(target.name) %}
+{% set portrait = art ?: portrait(target.name) %}
+
+<turbo-frame id="target-{{ target.id }}" class="target-frame reveal">
+    <article class="target {{ target.fiveStar ? 'target--five' : 'target--four' }}{% if target.estimate %} is-estimate{% endif %}{% if portrait %} has-portrait{% endif %}" data-el="{{ target.element ? target.element.value : 'none' }}" data-controller="tilt" data-testid="target-card">
+        {% if portrait %}<img class="target__portrait{% if art %} target__portrait--art{% endif %}" src="{{ portrait }}" alt="" loading="lazy" decoding="async">{% endif %}
+        <header class="target__head">
+            <h4 class="target__name"><i class="el-dot" aria-hidden="true"></i><span data-testid="target-name">{{ target.name }}</span></h4>
+            <span class="stars" role="img" aria-label="{{ 'target.rarity'|trans({count: target.rarity}) }}">{{ target.fiveStar ? '★★★★★' : '★★★★' }}</span>
+        </header>
+
+        <dl class="nums">
+            <div><dt>{{ 'target.character'|trans }}</dt><dd>{{ target.pullsCharacter }}</dd></div>
+            <div><dt>{{ 'target.weapon'|trans }}</dt><dd>{{ target.pullsWeapon }}</dd></div>
+            <div><dt>{{ 'target.total'|trans }}</dt><dd data-testid="target-total">{{ target.totalPulls }}</dd></div>
+        </dl>
+
+        {% if target.pullsCharacter > 0 %}
+            <div class="pity" role="img" aria-label="{{ 'target.pity_character'|trans({pulls: target.pullsCharacter, cap: cap}) }}" title="{{ 'target.pity_character'|trans({pulls: target.pullsCharacter, cap: cap}) }}">
+                <i style="--w:{{ min(100, target.pullsCharacter / cap * 100)|round(1) }}%"></i>
+                <b style="--x:{{ (soft / cap * 100)|round(1) }}%"></b>
+                {% if cap > hard %}<b class="pity__split" style="--x:{{ (hard / cap * 100)|round(1) }}%"></b><b style="--x:{{ ((hard + soft) / cap * 100)|round(1) }}%"></b>{% endif %}
+            </div>
+        {% endif %}
+        {% if target.pullsWeapon > 0 %}
+            <div class="pity pity--weapon" role="img" aria-label="{{ 'target.pity_weapon'|trans({pulls: target.pullsWeapon, cap: hard}) }}" title="{{ 'target.pity_weapon'|trans({pulls: target.pullsWeapon, cap: hard}) }}">
+                <i style="--w:{{ min(100, target.pullsWeapon / hard * 100)|round(1) }}%"></i>
+                <b style="--x:{{ (soft / hard * 100)|round(1) }}%"></b>
+            </div>
+        {% endif %}
+
+        <div class="target__chips">
+            {% if target.fiftyFiftyResult == 'won' %}
+                <span class="badge badge--won">{{ 'target.won'|trans }}</span>
+            {% elseif target.fiftyFiftyResult == 'lost' %}
+                <span class="badge badge--lost">{{ 'target.lost'|trans }}</span>
+            {% endif %}
+            {% if target.estimate %}
+                <span class="badge badge--estimate">{{ 'target.estimate'|trans }}</span>
+            {% else %}
+                <span class="badge badge--real">{{ 'target.real'|trans }}</span>
+            {% endif %}
+            {% if target.element %}<span class="badge badge--element">{{ target.element.label }}</span>{% endif %}
+        </div>
+
+        {% if target.notes %}<p class="target__notes">{{ target.notes }}</p>{% endif %}
+
+        <div class="target__tools">
+            <a class="icon-btn" href="{{ path('target_edit', {id: target.id}) }}" title="{{ 'action.edit'|trans }}" aria-label="{{ 'action.edit_target'|trans({name: target.name}) }}">{{ ui.icon('edit') }}</a>
+            {{ ui.delete_form(path('target_delete', {id: target.id}), 'delete-target-' ~ target.id, 'confirm.delete_target'|trans({name: target.name}), 'action.delete'|trans) }}
+        </div>
+    </article>
+</turbo-frame>

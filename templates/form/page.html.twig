@@ -14,7 +14,7 @@
                     <span class="eyebrow">{{ 'form.eyebrow'|trans }}</span>
                     <h1 class="form-page__title">{{ title|trans }}</h1>
                     <p class="muted">{{ description|trans }}</p>
-                    {{ form_start(form, {attr: {class: 'form-stack', novalidate: 'novalidate'}|merge(frame_id ? {'data-turbo-frame': '_top'} : {})}) }}
+                    {{ form_start(form, {action: frame_id ? app.request.requestUri : form.vars.action, attr: {class: 'form-stack', novalidate: 'novalidate'}|merge(frame_id ? {'data-turbo-frame': '_top'} : {})}) }}
                         {{ form_errors(form) }}
                         {{ form_widget(form) }}
                         <div class="form-actions">

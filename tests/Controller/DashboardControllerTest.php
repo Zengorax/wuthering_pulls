@@ -189,6 +189,34 @@ class DashboardControllerTest extends WebTestCase
         self::assertSame(1, $this->entityManager->getRepository(BannerTarget::class)->count([]));
     }
 
+    public function testCanEditAnInvocation(): void
+    {
+        [, , $target] = $this->seed();
+        $crawler = $this->client->request(
+            'GET',
+            '/targets/'.$target->getId().'/edit',
+            server: ['HTTP_TURBO_FRAME' => 'target-'.$target->getId()],
+        );
+        $form = $crawler->selectButton('Enregistrer')->form();
+        $form['target_'.$target->getId().'[name]'] = 'Aemeath';
+        $form['target_'.$target->getId().'[pullsCharacter]'] = '82';
+        $form['target_'.$target->getId().'[pullsWeapon]'] = '44';
+        $form['target_'.$target->getId().'[fiftyFiftyResult]'] = BannerTarget::FIFTY_FIFTY_LOST;
+        $form['target_'.$target->getId().'[isEstimate]']->tick();
+        $form['target_'.$target->getId().'[notes]'] = 'Valeurs corrigées';
+
+        $this->client->submit($form);
+
+        self::assertResponseRedirects('/');
+        $updatedTarget = $this->reload(BannerTarget::class, $target->getId());
+        self::assertSame('Aemeath', $updatedTarget->getName());
+        self::assertSame(82, $updatedTarget->getPullsCharacter());
+        self::assertSame(44, $updatedTarget->getPullsWeapon());
+        self::assertSame(BannerTarget::FIFTY_FIFTY_LOST, $updatedTarget->getFiftyFiftyResult());
+        self::assertTrue($updatedTarget->isEstimate());
+        self::assertSame('Valeurs corrigées', $updatedTarget->getNotes());
+    }
+
     public function testDeletingAPeriodRemovesItsVersionsAndTargets(): void
     {
         [$period] = $this->seed();
@@ -209,6 +237,7 @@ class DashboardControllerTest extends WebTestCase
         $this->client->request('GET', '/targets/'.$target->getId().'/edit', server: ['HTTP_TURBO_FRAME' => 'target-'.$target->getId()]);
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('turbo-frame#target-'.$target->getId().' form[data-turbo-frame="_top"]');
+        self::assertSame('/targets/'.$target->getId().'/edit', $this->client->getCrawler()->filter('turbo-frame#target-'.$target->getId().' form')->attr('action'));
         self::assertSelectorNotExists('header.topbar');
 
         $this->client->request('GET', '/versions/'.$version->getId().'/stock', server: ['HTTP_TURBO_FRAME' => 'version-stock-'.$version->getId()]);
